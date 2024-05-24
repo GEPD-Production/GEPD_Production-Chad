@@ -128,9 +128,10 @@ cap drop public
 cap drop school_weight
 cap drop $strata
 
+log on
 *fix a school code
 replace school_code = 222760 if school_code==22760
-
+log off
 frlink m:1 school_code, frame(school_collapse_temp)
 frget school_code ${strata} urban_rural public school_weight numEligible numEligible4th, from(school_collapse_temp)
 
