@@ -12,7 +12,6 @@ be adjusted accordingly-- more explanations are given throughout this Do-file.
 clear all
 
 *! PROFILE: Required step before running any dcommands in this project (select the "Run file in the same directory below")
-do "C:\Users\wb589124\WBG\HEDGE Files - HEDGE Documents\GEPD-Confidential\General\Country_Data\GEPD_Production-Chad\profile_GEPD.do"
 
 *set the paths
 gl data_dir ${clone}/03_GEPD_processed_data/
