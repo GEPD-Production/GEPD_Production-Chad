@@ -36,7 +36,6 @@ import delimited "${data_dir}\\Sampling\\GEPD_TCD_weights_2023-05-31.csv"
 * rename school code
 *rename school_code ${school_code_name}
 
-drop if school_code == 223748 & iden == "N DJAMENA 8"
 drop if school_code==585 & telephone_etablissement!="63170595"
 drop if      school_code==773 & telephone_etablissement!="65941064"
 drop if      school_code==2132 & telephone_etablissement!="91379418"
@@ -52,13 +51,11 @@ drop if      school_code==224357 & ipep!="AM TIMAN URBAIN"
 drop if    school_code==225988 & ipep!="5EME ARROND N DJAMENA"
 
 
+
 keep school_code ${strata} urban_rural public strata_prob ipw
 destring school_code, replace force
 destring ipw, replace force
 duplicates drop school_code, force
-
-
-
 
 ******
 * Merge the weights
@@ -75,12 +72,37 @@ drop if missing(school_code)
 frlink m:1 school_code, frame(weights)
 frget ${strata} urban_rural public strata_prob ipw, from(weights)
 
+*correcting some errors
+replace school_name_preload ="Information a completer" if school_name_preload=="Information � compl�ter"
+replace school_address_preload="Information a completer" if school_address_preload=="Information � compl�ter"
+
+replace school_name_preload ="ECOLE CENTRE A DE MASSAKORY, REGION DE HADJER LAMIS" if school_code==6699 
+replace school_province_preload="HADJER LAMIS" if school_code==6699 
+replace school_name_preload ="CS EVANGELIQUE NEHEMIE" if school_code==8669
+replace school_name_preload="RENAISSANCE ARABE DE SARH" if school_code==10342
+replace school_province_preload="MOYEN CHARI" if school_code==10342
+replace school_province_preload="Information a completer" if school_code==8669
+replace school_province_preload="LOGONE OCCIDENTAL" if school_code==221377 
+replace school_province_preload="" if school_code==223748 & school_address_preload=="2EME ET 3EME ARROND MOUNDOU"
+replace school_province_preload="LOGONE OCCIDENTAL" if school_code==223748 & school_address_preload=="2EME ET 3EME ARROND MOUNDOU"
+replace school_province_preload="Information a completer" if school_province_preload=="Information � compl�ter"
+
+
+// adding a unique_school_code varibale becuase the sampling frame had same code for different schools
+unique school_code    //261 only identified
+unique school_name_preload school_code //266 idenfied
+unique school_name_preload school_code school_address_preload //267 identified 
+unique school_name_preload school_code school_address_preload school_province_preload //267 identified 
+
+egen school_code_unique = group(school_name_preload school_code school_address_preload )
+unique school_code_unique
 
 *create weight variable that is standardized
 gen school_weight=1/strata_prob // school level weight
 
 *fourth grade student level weight
 egen g4_stud_count = mean(m4scq4_inpt), by(school_code)
+egen g2_stud_count = mean(m4scq4_inpt_g2), by(school_code)
 
 
 * drop if school weight missing as these could not be found in sampling frame
@@ -128,15 +150,27 @@ cap drop public
 cap drop school_weight
 cap drop $strata
 
+log on
 *fix a school code
 replace school_code = 222760 if school_code==22760
+log off
 
-frlink m:1 school_code, frame(school_collapse_temp)
-frget school_code ${strata} urban_rural public school_weight numEligible numEligible4th, from(school_collapse_temp)
+
+** correcting some mistakes 
+replace school_name_preload ="Information a completer" if school_name_preload=="Information � compl�ter"
+replace school_province_preload="HADJER LAMIS" if school_code==6699 
+replace school_province_preload="MOYEN CHARI" if school_code==10342
+replace school_province_preload="Information a completer" if school_province_preload=="Information � compl�ter"
+replace school_province_preload="LOGONE OCCIDENTAL" if school_code==221377 
+replace school_province_preload="LOGONE OCCIDENTAL" if school_code==223748 & school_province_preload=="LOGONE OCCIDENTAL"
+
+frlink m:1 school_code school_province_preload, frame(school_collapse_temp) 
+frget school_code ${strata} urban_rural public school_weight numEligible numEligible4th school_code_unique, from(school_collapse_temp)
 
 *get number of 4th grade teachers for weights
 egen g4_teacher_count=sum(m3saq2_4), by(school_code)
 egen g1_teacher_count=sum(m3saq2_1), by(school_code)
+egen g2_teacher_count=sum(m3saq2_2), by(school_code)
 
 log on
 *fix teacher id for a few cases
@@ -188,12 +222,12 @@ save "${processed_dir}\\School\\Confidential\\Merged\\teachers.dta" , replace
 frame copy teachers teachers_school
 frame change teachers_school
 
-collapse g1_teacher_count g4_teacher_count, by(school_code)
+collapse g1_teacher_count g4_teacher_count g2_teacher_count, by(school_code)
 
 frame change school
 frlink m:1 school_code, frame(teachers_school)
 
-frget g1_teacher_count g4_teacher_count, from(teachers_school)
+frget g1_teacher_count g4_teacher_count g2_teacher_count, from(teachers_school)
 
 
 
@@ -209,7 +243,7 @@ use "${data_dir}\\School\\ecd_assessment.dta"
 
 
 frlink m:1 interview__key interview__id, frame(school)
-frget school_code ${strata} urban_rural public school_weight m6_class_count g1_teacher_count, from(school)
+frget school_code ${strata} urban_rural public school_weight m6_class_count g1_teacher_count school_code_unique, from(school)
 
 
 order school_code
@@ -228,6 +262,86 @@ save "${processed_dir}\\School\\Confidential\\Merged\\first_grade_assessment.dta
 
 ***************
 ***************
+* 2nd Grade File
+***************
+***************
+*-pesec6
+frame create pesec6
+frame change pesec6
+use"${data_dir}\\School\\pasec_6_roster.dta"
+
+unique interview__key  ecd_assessment_g2__id pasec_6_roster__id   //unique 
+
+tab pasec_6_roster__id
+tab pasec_6_roster__id, nol
+
+sort interview__key ecd_assessment_g2__id
+reshape wide  pasec_6,  i(interview__key ecd_assessment_g2__id) j(pasec_6_roster__id)
+
+la var pasec_61 "Where is the party happening? "
+la var pasec_62 "Where are the teachers?"
+la var pasec_63 "Who dance?"
+
+unique interview__key  ecd_assessment_g2__id    //unique 
+unique interview__id  ecd_assessment_g2__id    //unique 
+
+*-pesec10
+frame create pesec10
+frame change pesec10
+use"${data_dir}\\School\\pasec_10_roster.dta"
+
+unique interview__key  ecd_assessment_g2__id pasec_10_roster__id   //unique 
+
+tab pasec_10_roster__id
+tab pasec_10_roster__id, nol
+
+sort interview__key ecd_assessment_g2__id
+reshape wide  pasec_10,  i(interview__key ecd_assessment_g2__id) j(pasec_10_roster__id)
+
+la var pasec_101 "8 + 5"
+la var pasec_102 "13 - 7"
+la var pasec_103 "14 + 23"
+la var pasec_104 "33 + 29"
+la var pasec_105 "34 - 11"
+la var  pasec_106 "50 - 18"
+
+unique interview__key  ecd_assessment_g2__id    //unique 
+unique interview__id  ecd_assessment_g2__id    //unique 
+
+**second grade main file
+frame create second_grade
+frame change second_grade
+use "${data_dir}\\School\\ecd_assessment_g2.dta" 
+
+
+frlink m:1 interview__key interview__id, frame(school)
+frget school_code ${strata} urban_rural public school_weight m4scq4_inpt_g2 m10_class_count g2_stud_count g2_teacher_count school_code_unique, from(school)
+
+order school_code
+sort school_code
+
+frlink m:1 interview__key interview__id ecd_assessment_g2__id, frame(pesec6)
+frget pasec_61 pasec_62 pasec_63, from(pesec6)
+
+frlink m:1 interview__key interview__id ecd_assessment_g2__id, frame(pesec10)
+frget pasec_101 pasec_102 pasec_103 pasec_104 pasec_105 pasec_106, from(pesec10)
+
+*weights
+gen g2_class_weight=g2_teacher_count/1, // weight is the number of 2nd grade streams divided by number selected (1)
+replace g2_class_weight=1 if g2_class_weight<1 //fix issues where no g2 teachers listed. Can happen in very small schools
+
+bysort school_code: gen g2_assess_count=_N
+
+gen g2_student_weight_temp=m10_class_count/g2_assess_count 
+
+gen g2_stud_weight=g2_class_weight*g2_student_weight_temp
+
+save "${processed_dir}\\School\\Confidential\\Merged\\second_grade_assessment.dta" , replace
+
+
+
+***************
+***************
 * 4th Grade File
 ***************
 ***************
@@ -238,7 +352,7 @@ use "${data_dir}\\School\\fourth_grade_assessment.dta"
 
 
 frlink m:1 interview__key interview__id, frame(school)
-frget school_code ${strata} urban_rural public school_weight m4scq4_inpt g4_stud_count g4_teacher_count, from(school)
+frget school_code ${strata} urban_rural public school_weight m4scq4_inpt g4_stud_count g4_teacher_count school_code_unique, from(school)
 
 order school_code
 sort school_code
@@ -283,6 +397,7 @@ local stringvars "`r(varlist)'"
 local stringvars : list stringvars- not
 
 collapse (mean) `numvars' (firstnm) `stringvars', by(school_code)
+
 
 
 save "${processed_dir}\\School\\Confidential\\Merged\\school.dta" , replace

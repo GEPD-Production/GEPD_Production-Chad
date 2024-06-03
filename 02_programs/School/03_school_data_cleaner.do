@@ -63,6 +63,17 @@ use "${wrk_dir}/first_grade_assessment.dta"
 
 set type double
 
+************
+*2nd grade assessment
+************
+cap frame create second_grade_assessment
+frame change second_grade_assessment
+*Load the ecd data
+use "${wrk_dir}/second_grade_assessment.dta"
+
+set type double
+
+
 *********************************************************
 * Data is clean and ready to produce indicators
 *********************************************************
@@ -440,7 +451,139 @@ svy: mean ecd_student_proficiency if m6s1q3==1
 
 svy: mean ecd_student_proficiency if m6s1q3==2
 
+*******************
+*2nd grade students assessment
+*******************
+frame change second_grade_assessment
+*create indicator for % correct on ECD assessment
+*There are no wrong values in the dataset- all variables are already set in [0,1] range
 
+*#rename this variable to avoid dropping when I run anonymization program later
+ rename   m10s2q6a_name_writing m10s2q6a_nm_writing
+ rename   m10s2q6b_name_writing m10s2q6b_nm_writing_response
+
+* Recode variables ending with specified suffixes using bin_var function
+foreach suffix in comprehension letters words sentence nm_writing print produce_set number_ident number_compare simple_add perspective conflict_resol {
+    ds *`suffix'
+    foreach var in `r(varlist)' {
+        bin_var `var' 1
+    }
+}
+
+/* [Not applicable to g2 data] Recode variables ending with "head_shoulders" to be 1 if equal to 2, otherwise 0
+ds *head_shoulders
+foreach var in `r(varlist)' {
+    bin_var `var' 2
+}
+*/
+
+* Recode variables ending with "vocabn" based on conditions
+ds *vocabn
+foreach var in `r(varlist)' {
+    replace `var' = . if `var' == 98
+    replace `var' = 0 if inlist(`var', 99, 77)
+    replace `var' = `var' / 10 if `var' < 10 & !missing(`var')	
+    replace `var' = 1 if `var' >= 10 & !missing(`var')
+}
+
+* Recode variables ending with "counting" based on conditions
+ds *counting
+foreach var in `r(varlist)' {
+    replace `var' = . if `var' == 98
+    replace `var' = 0 if inlist(`var', 99, 77)
+    replace `var' = `var' / 30 if `var' < 30 & !missing(`var')
+    replace `var' = 1 if `var' >= 30 & !missing(`var')
+}
+
+
+** Recode variables pasec6 and 10" to be consistent with the rest
+ds pasec_61 pasec_62 pasec_63 pasec_101 pasec_102 pasec_103 pasec_104 pasec_105 pasec_106
+foreach var in `r(varlist)' {
+
+    replace `var' = 0 if `var'==2
+}
+
+
+* Recode variables starting with "pasec" based on conditions
+ds pasec_*
+foreach var in `r(varlist)' {
+    replace `var' = . if `var' == 97
+    replace `var' = 0 if inlist(`var', 99, 77)
+}
+ 
+ 
+* Recode variable "pasec_5" for any obs>0 to be 1
+ds pasec_5
+foreach var in `r(varlist)' {
+    replace `var' = 1 if `var' > 0 & !missing(`var')
+
+}
+
+* Recode variable "pasec_4" for any obs>0 to be 1
+ds pasec_4
+foreach var in `r(varlist)' {
+    replace `var' = 1 if `var' > 0 & !missing(`var')
+
+}
+ 
+ 
+ 
+****Literacy****
+*calculate # of literacy items correct
+egen ecd2_literacy_student_knowledge=rowtotal(*vocabn *comprehension *letters *words *sentence m10s2q6a_nm_writing *_print pasec_1 pasec_2 pasec_3 pasec_4 pasec_5 pasec_61 pasec_62 pasec_63)
+replace ecd2_literacy_student_knowledge=ecd2_literacy_student_knowledge/33
+
+****Math****
+*calculate # of math items correct
+egen ecd2_math_student_knowledge=rowtotal(*counting *produce_set *number_ident *number_compare *simple_add pasec_7 pasec_9 pasec_101 pasec_102 pasec_103 pasec_104 pasec_105 pasec_106)
+replace ecd2_math_student_knowledge=ecd2_math_student_knowledge/27
+
+****Executive Functioning****
+*calculate # of executive functioning items correct
+gen ecd2_exec_student_knowledge=pasec_11
+
+****Socio-Emotional****
+*calculate # of socio emotional items correct
+egen ecd2_soc_student_knowledge=rowtotal(*perspective *conflict_resol)
+replace ecd2_soc_student_knowledge=ecd2_soc_student_knowledge/5
+
+*calculate % correct for literacy, math, exec functioning, socio emotional and total
+ds *vocabn *comprehension *letters *words *sentence m10s2q6a_nm_writing *_print pasec_1 pasec_2 pasec_3 pasec_4 pasec_5 pasec_61 pasec_62 pasec_63 *counting *produce_set *number_ident *number_compare *simple_add pasec_7 pasec_9 pasec_101 pasec_102 pasec_103 pasec_104 pasec_105 pasec_106 pasec_11 *perspective *conflict_resol  
+egen ecd2_student_knowledge=rowtotal(`r(varlist)')
+replace ecd2_student_knowledge = ecd2_student_knowledge/66
+gen ecd2_student_proficiency=(ecd2_student_knowledge>=.80) if !missing(ecd2_student_knowledge)
+
+gen ecd2_math_student_proficiency=(ecd2_math_student_knowledge>=.80) if !missing(ecd2_math_student_knowledge)
+gen ecd2_litera_student_proficiency=(ecd2_literacy_student_knowledge>=.80) if !missing(ecd2_literacy_student_knowledge)
+gen ecd2_exec_student_proficiency=(ecd2_exec_student_knowledge>=.80) if !missing(ecd2_exec_student_knowledge)
+gen ecd2_soc_student_proficiency=(ecd2_soc_student_knowledge>=.80) if !missing(ecd2_soc_student_knowledge)
+
+foreach var in ecd2_literacy_student_knowledge ecd2_math_student_knowledge ecd2_soc_student_knowledge ecd2_student_knowledge ecd2_student_proficiency ecd2_math_student_proficiency ecd2_litera_student_proficiency ecd2_soc_student_proficiency  {
+replace `var' = `var'*100
+}
+                                  
+svyset school_code, strata($strata) singleunit(scaled) weight(school_weight)   || ecd_assessment_g2__id, weight(g2_stud_weight)
+svy: mean ecd2_student_proficiency
+
+*For male students
+
+svy: mean ecd2_student_proficiency if m10s1q3==1
+
+
+*For female students
+
+svy: mean ecd2_student_proficiency if m10s1q3==2
+
+*Testing significance of difference between bioth genders 
+svy, over(m10s1q3): mean ecd2_math_student_knowledge
+	matrix list e(b)
+	lincom _b[c.ecd2_math_student_knowledge@1.m10s1q3] -_b[c.ecd2_math_student_knowledge@2.m10s1q3]
+
+svy, over(m10s1q3): mean ecd2_literacy_student_knowledge
+	matrix list e(b)
+	lincom _b[c.ecd2_literacy_student_knowledge@1.m10s1q3] -_b[c.ecd2_literacy_student_knowledge@2.m10s1q3]
+
+	
 *********************************************
 ***** School Inputs ********
 *********************************************
@@ -1381,11 +1524,8 @@ save "$save_dir/fourth_grade_Stata.dta", replace
 frame change first_grade_assessment
 save "$save_dir/first_grade_Stata.dta", replace
 
+frame change second_grade_assessment
+save "$save_dir/second_grade_Stata.dta", replace
+
+
 ****************************************************************************END**************************************************************************************************
-
-
-
-
-
-
-
