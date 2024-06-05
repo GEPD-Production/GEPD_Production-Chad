@@ -20,7 +20,7 @@ if _rc {
 global country "TCD"
 global country_name  "Chad"
 global year  "2023"
-global strata "Region" 
+global strata "region" 
 * Strata for sampling
 *-------------------------------------------------------------------------------
 * Run all tasks in this project
