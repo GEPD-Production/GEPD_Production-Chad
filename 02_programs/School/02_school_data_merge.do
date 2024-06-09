@@ -50,7 +50,7 @@ drop if      school_code==221233 & ipep!="DAGANA URBAIN"
 drop if      school_code==224357 & ipep!="AM TIMAN URBAIN"
 drop if    school_code==225988 & ipep!="5EME ARROND N DJAMENA"
 
-
+gl strata region
 
 keep school_code ${strata} urban_rural public strata_prob ipw 
 destring school_code, replace force
@@ -155,7 +155,7 @@ log on
 replace school_code = 222760 if school_code==22760
 log off
 
-
+log on
 ** correcting some mistakes 
 replace school_name_preload ="Information a completer" if school_name_preload=="Information � compl�ter"
 replace school_province_preload="HADJER LAMIS" if school_code==6699 
@@ -163,6 +163,7 @@ replace school_province_preload="MOYEN CHARI" if school_code==10342
 replace school_province_preload="Information a completer" if school_province_preload=="Information � compl�ter"
 replace school_province_preload="LOGONE OCCIDENTAL" if school_code==221377 
 replace school_province_preload="LOGONE OCCIDENTAL" if school_code==223748 & school_province_preload=="LOGONE OCCIDENTAL"
+log off
 
 
 frlink m:1 school_code school_province_preload, frame(school_collapse_temp) 
@@ -183,7 +184,6 @@ list school_code teachers_id m2saq2 m3sb_troster m3sb_tnumber m4saq1 m4saq1_numb
 drop if missing(teachers_id)
 
 log off
-log close
 
 order school_code
 sort school_code
@@ -214,7 +214,7 @@ replace teacher_pedagogy_weight=1 if missing(teacher_pedagogy_weight) //fix issu
 
 drop if missing(school_weight)
 
-
+log on
 *checking duplicates 
 unique school_code teachers_id
 
@@ -551,7 +551,8 @@ br  school_code teachers_id  m4saq1_number if missing(m4saq1_number) & in_pedago
 replace m4saq1_number=teachers_id if missing(m4saq1_number) & in_pedagogy==1
 	unique school_code m4saq1_number if in_pedagogy==1
 
-	
+log off
+log close	
 
 save "${processed_dir}\\School\\Confidential\\Merged\\teachers.dta" , replace
 
