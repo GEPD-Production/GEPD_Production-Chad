@@ -148,7 +148,6 @@ log off
 cap drop urban_rural
 cap drop public
 cap drop school_weight
-cap drop $strata
 
 log on
 *fix a school code
