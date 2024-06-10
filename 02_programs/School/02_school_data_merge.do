@@ -547,6 +547,10 @@ duplicates tag school_code m3sb_tnumber if !missing(m3sb_tnumber), gen(dups)
 replace m3sb_tnumber=teachers_id if dups>0 & !missing(m3sb_tnumber)
 	drop dups 
 	unique school_code m3sb_tnumber if !missing(m3sb_tnumber)
+	
+replace m3sb_tnumber=teachers_id if school_code==4855 & !missing(m3sb_tnumber)
+replace m3sb_tnumber=teachers_id if school_code==6516 & !missing(m3sb_tnumber)
+
 
 *checking missing IDs on Teach data_dir 
 
@@ -556,7 +560,7 @@ replace m4saq1_number=teachers_id if missing(m4saq1_number) & in_pedagogy==1
 	unique school_code m4saq1_number if in_pedagogy==1
 
 log off
-log close	
+	
 
 save "${processed_dir}\\School\\Confidential\\Merged\\teachers.dta" , replace
 
@@ -714,6 +718,15 @@ bysort school_code: gen g4_assess_count=_N
 gen g4_student_weight_temp=g4_stud_count/g4_assess_count // max of 25 students selected from the class
 
 gen g4_stud_weight=g4_class_weight*g4_student_weight_temp
+
+log on
+*correcting some ID mistakes (unique children within same schools assigned same id)
+
+replace fourth_grade_assessment__id=9 if school_code==3139 & flage_g4_dup>0 & m8s1q1=="HINONE CLARISSE"
+replace fourth_grade_assessment__id=11 if school_code==3139 & flage_g4_dup>0 & m8s1q1=="MASSINFABA ARSENE"
+replace fourth_grade_assessment__id=14 if school_code==3139 & flage_g4_dup>0 & m8s1q1=="NONBOURTA JEAN"
+log off
+log close
 
 save "${processed_dir}\\School\\Confidential\\Merged\\fourth_grade_assessment.dta" , replace
 
