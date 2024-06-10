@@ -148,6 +148,7 @@ log off
 cap drop urban_rural
 cap drop public
 cap drop school_weight
+cap drop region
 
 log on
 *fix a school code
@@ -532,6 +533,10 @@ duplicates tag school_code m5sb_tnumber if !missing(m5sb_tnumber), gen(dups)
 replace m5sb_tnumber=teachers_id if dups>0 & !missing(m5sb_tnumber)
 	drop dups 
 	unique school_code m5sb_tnumber if !missing(m5sb_tnumber)
+	
+replace m5sb_tnumber=teachers_id if school_code==5177 & !missing(m5sb_tnumber)
+replace m5sb_tnumber=teachers_id if school_code==221233 & !missing(m5sb_tnumber)
+
 
 *correcting some ids on teacher questionnaire 
 unique school_code m3sb_tnumber if !missing(m3sb_tnumber)
