@@ -524,6 +524,7 @@ foreach v in `r(varlist)' {
 drop dups
 unique school_code teachers_id
 
+
 *correcting some ids on teacher assessment IDs
 unique school_code m5sb_tnumber if !missing(m5sb_tnumber)
 duplicates tag school_code m5sb_tnumber if !missing(m5sb_tnumber), gen(dups)
@@ -591,7 +592,7 @@ frget g1_teacher_count g4_teacher_count g2_teacher_count, from(teachers_school)
 
 frame create first_grade
 frame change first_grade
-use "${data_dir}\\School\\ecd_assessment.dta" 
+use "${data_dir}\\School\\ecd_assessment.dta"
 
 
 frlink m:1 interview__key interview__id, frame(school)
@@ -722,9 +723,14 @@ gen g4_stud_weight=g4_class_weight*g4_student_weight_temp
 log on
 *correcting some ID mistakes (unique children within same schools assigned same id)
 
-replace fourth_grade_assessment__id=9 if school_code==3139 & flage_g4_dup>0 & m8s1q1=="HINONE CLARISSE"
-replace fourth_grade_assessment__id=11 if school_code==3139 & flage_g4_dup>0 & m8s1q1=="MASSINFABA ARSENE"
-replace fourth_grade_assessment__id=14 if school_code==3139 & flage_g4_dup>0 & m8s1q1=="NONBOURTA JEAN"
+duplicates tag school_code_unique fourth_grade_assessment__id, gen(flag_g4_dup)
+
+replace fourth_grade_assessment__id=9 if school_code==3139 & flag_g4_dup>0 & m8s1q1=="HINONE CLARISSE"
+replace fourth_grade_assessment__id=11 if school_code==3139 & flag_g4_dup>0 & m8s1q1=="MASSINFABA ARSENE"
+replace fourth_grade_assessment__id=14 if school_code==3139 & flag_g4_dup>0 & m8s1q1=="NONBOURTA JEAN"
+
+unique school_code_unique fourth_grade_assessment__id
+drop flag_g4_dup
 log off
 log close
 
