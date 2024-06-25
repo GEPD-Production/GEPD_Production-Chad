@@ -1802,7 +1802,6 @@ svy: mean `var' if urban_rural == "Urban" & m2saq7_2==1
 
 frame change school 
 codebook, compact 
-
 cap la var student_attendance "Student attendance"
 cap la var boys_num_attending "Number of boys attending"
 cap la var boys_on_list "Number of boys on list"
@@ -1940,7 +1939,6 @@ cap la var school_code "School code"
 
 frame change teachers
 codebook, compact 
-
 cap la var in_questionnaire  "observation in the teachers questionnaire data"
 cap la var in_assessment     "observation in the teachers assessment data"
 cap la var in_pedagogy  	  "observation in the teachers observation/teach data"
@@ -1991,22 +1989,21 @@ cap la var school_code "School code"
 
 frame change fourth_grade_assessment
 codebook, compact 
-
 cap la var g4_class_weight  "g4_class_weight"
 cap la var g4_stud_weight    "g4_stud_weight"
 cap la var m8sbq1_number_sense	"Please put these numbers intherightorder, from lower tohigher:2-17-55-117-123-987"		
-cap la var m8sbq3b_arithmetic "28+27=55"
-cap la var m8sbq3c_arithmetic "335+145=480"
-cap la var m8sbq3d_arithmetic "8-5=3"
-cap la var m8sbq3e_arithmetic "57-49=8"
-cap la var m8sbq3f_arithmetic "7x8=56"
-cap la var m8sbq3g_arithmetic "37x40=1480"
-cap la var m8sbq3h_arithmetic "214x104=22.256"
-cap la var m8sbq3i_arithmetic "6/3=2"
-cap la var m8sbq3j_arithmetic "75/5=15"
+cap la var m8sbq3b_arithmetic "double digit addition"
+cap la var m8sbq3c_arithmetic "triple digit addition"
+cap la var m8sbq3d_arithmetic "single digit subtraction"
+cap la var m8sbq3e_arithmetic "double digit subtraction"
+cap la var m8sbq3f_arithmetic "single digit multiplication"
+cap la var m8sbq3g_arithmetic "double digit multiplication"
+cap la var m8sbq3h_arithmetic "triple digit multiplication"
+cap la var m8sbq3i_arithmetic "single digit division"
+cap la var m8sbq3j_arithmetic "double digit division"
 cap la var m8sbq4_arithmetic " Which gives smallest answer? a)81:5"
 cap la var m8sbq5_word_problem "A box contains 26 oranges. How many oranges are contained in 10boxes?260" 
-cap la var m8sbq6_sequences "48 → 24 → 12 → 6(3)"
+cap la var m8sbq6_sequences "Number series"
 cap la var public "Public"
 cap la var school_code "School code"
 
