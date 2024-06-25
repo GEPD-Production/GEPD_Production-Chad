@@ -1514,6 +1514,7 @@ svy: mean principal_evaluation
 
 frame change school
 
+
 ** grouping teach variables and storing them into globals 
 
 gl low_medium_high s1_0_1_2 s1_0_2_2 s1_0_3_2 s1_a2_1 s1_a2_2 s1_a2_3 s1_b3_1 s1_b3_2 s1_b3_3 s1_b3_4 s1_b5_1 s1_b5_2 s1_b6_1 ///
@@ -1546,59 +1547,85 @@ if (_rc == 7) continue
 	*these aggregate vars must be numeric -- if they are, the loop would do nothing
 
 	destring `var', replace
-		tab `var'
+		codebook `var'
 }
+
 
 
 label define low_medium_high_lbl 1 "NA" 2 "L" 3 "M" 4 "H"
 foreach var of global low_medium_high {
-capture confirm string varibale `var'
-if (_rc == 7) continue 
-	tab `var', m
-	
-	replace `var'= upper(`var')							  //Making all upper
-	replace `var'= subinstr(`var', " ", "", .)			  //Trimming spaces
-	replace `var'= substr(`var' , 1, 1) if `var' !="NA"	  //for L,M,H; extract only first letters
+capture confirm string varibale `{$low_medium_high}'
+ if _rc  {
+ 	* if numeric do the following
+ 	codebook `var'
+	label val `var' low_medium_high_lbl
+	codebook `var'
+}
+
+else {
+	* if string do the follwoing
+	replace `var'= upper(`var')								//Making all upper
+	replace `var'= subinstr(`var', " ", "", .)				//Trimming spaces
+	replace `var'= substr(`var' , 1, 1) if `var' !="NA"	    //for Yes, No; we extract only first letters
 
 	replace `var' ="1" if (`var'=="NA" | `var'=="")
 	replace `var' ="2" if `var'=="L"
 	replace `var' ="3" if `var'=="M"
 	replace `var' ="4" if `var'=="H"
-
+	
 	destring `var', replace
-		label val `var' low_medium_high_lbl
+	label val `var' low_medium_high_lbl
 		
 		tab `var'
+
+	
+}
 }
 
+	
 
 foreach var of global low_medium_high_na {
-capture confirm string varibale `v'
-if (_rc == 7) continue 
-	tab `var', m
-	
-	replace `var'= upper(`var')							  //Making all upper
-	replace `var'= subinstr(`var', " ", "", .)			  //Trimming spaces
-	replace `var'= substr(`var' , 1, 1) if `var' !="NA"	  //for L,M,H; we extract only first letters
+capture confirm string varibale `{$low_medium_high_na}'
+ if _rc  {
+ 	* if numeric do the following
+ 	codebook `var'
+	label val `var' low_medium_high_lbl
+	codebook `var'
+}
+else {
+	* if string do the follwoing
+	replace `var'= upper(`var')								//Making all upper
+	replace `var'= subinstr(`var', " ", "", .)				//Trimming spaces
+	replace `var'= substr(`var' , 1, 1) if `var' !="NA"	    //for Yes, No; we extract only first letters
 
 	replace `var' ="1" if (`var'=="NA" | `var'=="")
 	replace `var' ="2" if `var'=="L"
 	replace `var' ="3" if `var'=="M"
 	replace `var' ="4" if `var'=="H"
-
+	
 	destring `var', replace
-		label val `var' low_medium_high_lbl
+	label val `var' low_medium_high_lbl
 		
 		tab `var'
+
+	
 }
+}
+	
 
 
 label define yes_no_lbl 0 "N" 1 "Y"
 foreach var of global yes_no {
-capture confirm string varibale `v'
-if (_rc == 7) continue 
-	tab `var', m
-	
+ capture confirm string varibale `{$yes_no}'
+ if _rc  {
+ 	* if numeric do the following
+ 	codebook `var'
+	label val `var' yes_no_lbl
+	codebook `var'
+}
+
+else {
+	* if string do the follwoing
 	replace `var'= upper(`var')								//Making all upper
 	replace `var'= subinstr(`var', " ", "", .)				//Trimming spaces
 	replace `var'= substr(`var' , 1, 1) if `var' !="NA"	    //for Yes, No; we extract only first letters
@@ -1608,9 +1635,12 @@ if (_rc == 7) continue
 	replace `var' ="1" if `var'=="Y"
 
 	destring `var', replace
-		label val `var' yes_no_lbl
+	label val `var' yes_no_lbl
 		
 		tab `var'
+
+	
+}
 }
 
 
@@ -1705,10 +1735,6 @@ gen teach_prof = 100*(teach_score>=3)
 drop if missing(teach_score)
 	
 
-
-
-
-
 drop s1_a1_pro s1_a2_pro s1_b3_pro s1_b4_pro s1_b5_pro s1_b6_pro ///
 s1_c7_pro s1_c8_pro s1_c9_pro classroom_culture_pro instruction_pro ///
 socio_emotional_skills_pro cc_counter i_counter se_counter tch_counter
@@ -1770,6 +1796,246 @@ svy: mean `var' if urban_rural == "Urban" & m2saq7_2==1
 
 
 
+*********************************************
+* Assigning varibales lables to varibales calculated in the process
+*********************************************
+
+frame change school 
+codebook, compact 
+
+cap la var student_attendance "Student attendance"
+cap la var boys_num_attending "Number of boys attending"
+cap la var boys_on_list "Number of boys on list"
+cap la var student_attendance_male "Student attendance (male)"
+cap la var student_attendance_female "Student attendance (female)"
+cap la var share_textbook "Textbook shared"
+cap la var share_pencil "Pencil shared"
+cap la var share_exbook "excercise book shared"
+cap la var  textbooks "Textbooks"
+cap la var  used_ict_num "Number of used ICT"
+cap la var  toilet_exists "Toilet exists"
+cap la var  toilet_separate "Toilet separate"
+cap la var  toilet_private "Toilet private"
+cap la var  toilet_usable "Toilet usable"
+cap la var  toilet_handwashing "Toilet (place for handwashing)"
+cap la var  toilet_soap "Toilet (Soap)"
+cap la var  visibility "visibility"
+cap la var  internet "Internet"
+cap la var  infrastructure "Infrastructure"
+cap la var  principal_knowledge_avg "Principal knowledge .avg"
+cap la var  school_goals_exist "School goals exist"
+cap la var  school_goals_clear "School goals clear"
+cap la var  school_goals_relevant "School goals relevant"
+cap la var  school_goals_measured "School goals measured"
+cap la var  problem_solving "Problem solving"
+cap la var  standards_monitoring_input "Standards for monitoring inputs"
+cap la var  principal_salary "Principal's salary"
+cap la var  principal_salary_score "Principal's salary score"
+cap la var  principal_trained "Principal trained"
+cap la var blackboard_functional "Blackboard functional"
+cap la var blackboard_pknw "Blackboard pknw"
+cap la var class_electricity "Class electricity"
+cap la var functioning_toilet "Functioning toilet"
+cap la var disab_class_entr "Disab class entr"
+cap la var disab_class_ramp "Disab class ramp"
+cap la var disab_road_access "Disab road access"
+cap la var disab_school_entr "Disab school entr"
+cap la var disab_school_ramp "Disab school ramp"
+cap la var disab_screening "Disab screening"
+cap la var disability_accessibility "Disability accessibility"
+cap la var vignette_1 "Vignette 1"
+cap la var vignette_1_address "Vignette 1_address"
+cap la var vignette_1_finance "Vignette 1_finance"
+cap la var vignette_1_resp "Vignette 1_resp"
+cap la var vignette_2 "Vignette 2"
+cap la var vignette_2_address "Vignette 2_address"
+cap la var vignette_2_finance "Vignette 2_finance"
+cap la var vignette_2_resp "Vignette 2_resp"
+cap la var  principal_knowledge_avg "Principal knowledge .avg"
+cap la var  school_goals_exist "School goals exist"
+cap la var  school_goals_clear "School goals clear"
+cap la var  school_goals_relevant "School goals relevant"
+cap la var  school_goals_measured "School goals measured"
+cap la var  problem_solving "Problem solving"
+cap la var  standards_monitoring_input "Standards for monitoring inputs"
+cap la var  principal_salary "Principal's salary"
+cap la var  principal_salary_score "Principal's salary score"
+cap la var  principal_trained "Principal trained"
+cap la var principal_evaluation "Principal evaluation"
+cap la var principal_evaluation_multiple "Principal evaluation multiple"
+cap la var principal_formally_evaluated "Principal formally evaluated"
+cap la var principal_hiring_scfn "Principal hiring scfn"
+cap la var principal_knowledge_score "Principal knowledge score"
+cap la var principal_management "Principal management"
+cap la var principal_negative_consequences "Principal negative consequences"
+cap la var principal_offered "Principal offered"
+cap la var principal_positive_consequences "Principal positive consequences"
+cap la var principal_satisfaction "Principal satisfaction"
+cap la var principal_supervision_scfn "Principal supervision scfn"
+cap la var principal_training "Principal training"
+cap la var principal_used_skills "Principal used skills"
+cap la var principalcode "rowcode principal"
+cap la var prinicipal_trained "Prinicipal trained"
+cap la var add_triple_digit_pknw "Add triple digit pknw"
+cap la var blackboard_pknw "Blackboard pknw"
+cap la var complete_sentence_pknw "Complete sentence pknw"
+cap la var experience_pknw "Experience pknw"
+cap la var textbooks_pknw "Textbooks pknw"
+cap la var multiply_double_digit_pknw "Multiply double digit pknw"
+cap la var m7sfq7_pknw "M7Sfq7 pknw"
+cap la var m7sfq6_pknw "M7Sfq6 pknw"
+cap la var m7sfq5_pknw "M7Sfq5 pknw"
+cap la var pknw_actual_exper "pknw_actual_exper"
+cap la var pknw_actual_cont "pknw_actual_cont"
+cap la var socio_emotional_skills "Socio emotional skills"
+cap la var socio_emotional_skills_prof "Socio emotional skills prof"
+cap la var instruction "Instruction"
+cap la var instruction_prof "Instruction prof"
+cap la var instructional_leadership "Instructional leadership"
+cap la var teach_prof "Teach prof"
+cap la var teach_score "Teach score"
+cap la var classroom_culture_prof "Classroom culture prof"
+cap la var classroom_culture "Classroom culture"
+cap la var classroom_culture_prof "Classroom culture prof"
+cap la var sch_goals_relevant "Sch goals relevant"
+cap la var sch_management_attraction "Sch management attraction"
+cap la var sch_management_clarity "Sch management clarity"
+cap la var sch_monitoring "Sch monitoring"
+cap la var sch_owner "Sch owner"
+cap la var sch_selection_deployment "Sch selection deployment"
+cap la var sch_support "Sch support"
+cap la var inputs "School Inputs score"
+cap la var goal_setting  "goal setting score"
+cap la var problem_solving_proactive "Problem solving-Proactive"
+cap la var problem_solving_info_collect "Problem_solving-Info_collect"
+cap la var problem_solving_stomach  "Problem solving-Stomach"
+cap la var standards_monitoring_infra "Standards for monitoring_infra"
+cap la var standards_monitoring "Standards monitoring"
+cap la var  principal_knowledge_avg "Principal knowledge .avg"
+cap la var  school_goals_exist "School goals exist"
+cap la var  school_goals_clear "School goals clear"
+cap la var  school_goals_relevant "School goals relevant"
+cap la var  school_goals_measured "School goals measured"
+cap la var  problem_solving "Problem solving"
+cap la var  standards_monitoring_input "Standards for monitoring inputs"
+cap la var  principal_salary "Principal's salary"
+cap la var  principal_salary_score "Principal's salary score"
+cap la var  principal_trained "Principal trained"
+cap la var monitoring_infrastructure "Monitoring infrastructure"
+cap la var monitoring_inputs "Monitoring inputs"
+cap la var principal_hiring_scfn "Principal hiring scfn"
+cap la var principal_supervision_scfn "Principal supervision scfn"
+cap la var student_scfn "Student scfn"
+cap la var supervision_scfn "Supervision scfn"
+cap la var infrastructure_scfn "Infrastructure scfn"
+cap la var hiring_scfn "Hiring scfn"
+cap la var materials_scfn "Materials scfn"
+cap la var operational_management "Operational management"
+cap la var drinking_water "Drinking water"
+cap la var used_ict "Used ict"
+cap la var access_ict "Access ict"
+cap la var public "Public"
+cap la var school_code "School code"
+
+
+frame change teachers
+codebook, compact 
+
+cap la var in_questionnaire  "observation in the teachers questionnaire data"
+cap la var in_assessment     "observation in the teachers assessment data"
+cap la var in_pedagogy  	  "observation in the teachers observation/teach data"
+cap la var school_weight 	  "School_weight"
+cap la var g4_teacher_count  "Grade 4 teacher count"
+cap la var g1_teacher_count  "Grade 1 teacher count"
+cap la var teacher_abs_weight "Teacher abs weight"
+cap la var teacher_questionnaire_weight "Teacher questionnaire weight"
+cap la var teacher_content_weight  "Teacher content weight"
+cap la var teacher_pedagogy_weight "Teacher_pedagogy_weight"
+cap la var principal_absence "Principal absence_rate"
+cap la var m5_teach_count "Count of non missing content knowledge obs by school"
+cap la var m5_teach_count_math "Count of non missing math content knowledge obs by school"
+cap la var discussion_30_min  "discussion 30 min "
+cap la var lesson_plan 	   "lesson plan"
+cap la var teacher_bonus_attend  "teacher bonus_attendance"
+cap la var teacher_bonus_student_perform "teacher bonus_student performance"
+cap la var teacher_bonus_extra_duty  "teacher bonus_extra duty"
+cap la var teacher_bonus_hard_staff  "teacher bonus_hard staff"
+cap la var teacher_bonus_subj_shortages "teacher bonus-subj shortages"
+cap la var teacher_bonus_add_qualif "teacher bonus-add qualif"
+cap la var teacher_bonus_school_perform "teacher bonus-school perform "
+cap la var pre_training_exists  "pre training-exists"
+cap la var pre_training_useful  "pre training-useful"
+cap la var pre_training_practicum "pre training-practicum"
+cap la var pre_training_practicum_lngth "pre training-practicum length"
+cap la var in_service_exists "in service training- exists"
+cap la var in_servce_lngth "in service training- length"
+cap la var in_service_classroom "in service training- classroom"
+cap la var practicum "Practicum"
+cap la var SE_PRM_TINM_1 "(De Facto) % teachers agree/strongly agree (acceptable teacher to be absent if curriculum~)"
+cap la var SE_PRM_TINM_2 "(De Facto) % teachers agree/strongly agree (acceptable teacher to be absent if stud~)"
+cap la var SE_PRM_TINM_3 "(De Facto) % teachers agree/strongly agree (acceptable teacher to be absent if useful community~)"
+cap la var SE_PRM_TINM_4 "(De Facto) % teachers agree/strongly agree (Students deserve more attention if they attend scho~)"
+cap la var SE_PRM_TINM_5 "(De Facto) % teachers agree/strongly agree (Students deserve more attention if they come to sch~)"
+cap la var SE_PRM_TINM_6 "(De Facto) % teachers agree/strongly agree (Students deserve more attention if they are motivat~)"
+cap la var SE_PRM_TINM_7 "(De Facto) % teachers agree/strongly agree (Students have a certain amount of intelligence and~)"
+cap la var SE_PRM_TINM_8 "(De Facto) % teachers agree/strongly agree (To be honest, students can't really change how inte~)"
+cap la var SE_PRM_TINM_9 "(De Facto) % teachers agree/strongly agree (Students can always substantially change how intell~)"
+cap la var SE_PRM_TINM_10 "(De Facto) % teachers agree/strongly agree (Students can change even their basic intelligence l~)"
+cap la var motivation_teaching_1 "teacher motivation for teaching_1"	
+cap la var public "Public"
+cap la var purpose_observation "Purpose of the observation"
+cap la var teacher_bonus_other	"teacher bonus-Other"
+cap la var public "Public"
+cap la var school_code "School code"
+
+
+frame change fourth_grade_assessment
+codebook, compact 
+
+cap la var g4_class_weight  "g4_class_weight"
+cap la var g4_stud_weight    "g4_stud_weight"
+cap la var m8sbq1_number_sense	"Please put these numbers intherightorder, from lower tohigher:2-17-55-117-123-987"		
+cap la var m8sbq3b_arithmetic "28+27=55"
+cap la var m8sbq3c_arithmetic "335+145=480"
+cap la var m8sbq3d_arithmetic "8-5=3"
+cap la var m8sbq3e_arithmetic "57-49=8"
+cap la var m8sbq3f_arithmetic "7x8=56"
+cap la var m8sbq3g_arithmetic "37x40=1480"
+cap la var m8sbq3h_arithmetic "214x104=22.256"
+cap la var m8sbq3i_arithmetic "6/3=2"
+cap la var m8sbq3j_arithmetic "75/5=15"
+cap la var m8sbq4_arithmetic " Which gives smallest answer? a)81:5"
+cap la var m8sbq5_word_problem "A box contains 26 oranges. How many oranges are contained in 10boxes?260" 
+cap la var m8sbq6_sequences "48 → 24 → 12 → 6(3)"
+cap la var public "Public"
+cap la var school_code "School code"
+
+
+
+frame change first_grade_assessment
+codebook, compact 
+cap la var g1_class_weight "g1_class_weight "
+cap la var g1_stud_weight  "g1_stud_weight"  
+cap la var m6s2q13prac_backward_digit "1.1,2"
+cap la var m6s2q13prac2_backward_digit "2.4,8,3"
+cap la var m6s2q14prac1_head_shoulders "1 Touch your head"
+cap la var m6s2q14prac2_head_shoulders "2 Now touchyour toes"
+cap la var m6s2q14prac3_head_shoulders "3 Now touchyour toes"
+cap la var m6s2q14prac1b_head_shoulders "1b Touchyour shoulders"
+cap la var m6s2q14prac2b_head_shoulders "2b Touchyour knees"
+cap la var m6s2q14prac3b_head_shoulders "3b Touchyour knees"
+cap la var soc_length "Soc length"
+cap la var exec_length "Exec length"            
+cap la var public "Public"
+cap la var school_code "School code"
+
+
+frame change second_grade_assessment
+codebook, compact 
+cap la var g2_class_weight "g2_class_weight "
+cap la var g2_stud_weight  "g2_stud_weight"  
+cap la var public "Public"
+cap la var school_code "School code"
 
 *********************************************
 * Save school, teachers, fourth_grade, and first_grade dataframe to stata data files in processed_dir

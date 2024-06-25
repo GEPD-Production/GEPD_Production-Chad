@@ -578,12 +578,12 @@ save "${processed_dir}\\School\\Confidential\\Merged\\teachers.dta" , replace
 frame copy teachers teachers_school
 frame change teachers_school
 
-collapse g1_teacher_count g4_teacher_count g2_teacher_count, by(school_code)
+collapse g1_teacher_count g4_teacher_count g2_teacher_count teacher_pedagogy_weight, by(school_code)
 
 frame change school
 frlink m:1 school_code, frame(teachers_school)
 
-frget g1_teacher_count g4_teacher_count g2_teacher_count, from(teachers_school)
+frget g1_teacher_count g4_teacher_count g2_teacher_count teacher_pedagogy_weight, from(teachers_school)
 
 
 
