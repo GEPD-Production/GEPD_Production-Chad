@@ -1512,6 +1512,7 @@ svy: mean principal_evaluation
 ***** Pedagogical skills (TEACH)  ***********
 *********************************************
 
+*chnage to the frame where teach data exist (school or teachers)
 frame change school
 
 
@@ -1739,8 +1740,7 @@ drop s1_a1_pro s1_a2_pro s1_b3_pro s1_b4_pro s1_b5_pro s1_b6_pro ///
 s1_c7_pro s1_c8_pro s1_c9_pro classroom_culture_pro instruction_pro ///
 socio_emotional_skills_pro cc_counter i_counter se_counter tch_counter
 
-
-
+/*some useful disaagregations that could be run -- 
 frame change teachers 
 
 svyset school_code, strata($strata) singleunit(scaled) weight(school_weight)  || teacher_unique_id, weight(teacher_pedagogy_weight)
@@ -1793,7 +1793,7 @@ svy: mean `var' if urban_rural == "Urban" & m2saq7_4==1
 foreach var in teach_score teach_prof  {
 svy: mean `var' if urban_rural == "Urban" & m2saq7_2==1
 }
-
+*/
 
 
 *********************************************
