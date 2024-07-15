@@ -1733,7 +1733,6 @@ gen socio_emotional_skills_prof=.
 *--Overall teach proficiency
 gen teacher_pedg_comb_weight = school_weight * teacher_pedagogy_weight
 gen teach_prof = 100*(teach_score>=3)
-drop if missing(teach_score)
 	
 
 drop s1_a1_pro s1_a2_pro s1_b3_pro s1_b4_pro s1_b5_pro s1_b6_pro ///
