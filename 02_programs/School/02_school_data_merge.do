@@ -280,12 +280,7 @@ foreach v in `r(varlist)' {
 	replace `v'=`v'[353] if _n == 352 & dups==1 & `v'[352]=="" & !missing("`v'"[353])
 } 
 
-		drop if _n==353
-		
-
-//-----4th obs dup (school_code 3258 and teacher_id 2)-- issue here is wrong teacher_id-- do nothing
-
-* ....
+		drop if _n==353		
 
 
 //-----5th obs dup (school_code 5203 and teacher_id 3)
@@ -319,10 +314,6 @@ foreach v in `r(varlist)' {
 
 		drop if _n==624
 
-		
-//-----7th obs dup (school_code 5716 and teacher_id 1)-- issue here is wrong teacher_id-- do nothing
-
-* ....
 
 
 //-----8th obs dup (school_code 6261 and teacher_id 12)
@@ -399,9 +390,6 @@ foreach v in `r(varlist)' {
 		drop if _n==1151
 	
 		
-//-----13th obs dup (school_code 11575 and teacher_id 1)-- issue here is wrong teacher_id-- do nothing
-
-***
 	
 //-----14th obs dup (school_code 12177 and teacher_id 4)
 ds, has(type numeric)  
@@ -524,8 +512,81 @@ foreach v in `r(varlist)' {
 		drop if _n==1951
 		
 		
+//-----4th obs dup (school_code 3258 and teacher_id 2)-- issue here is wrong teacher_id-- checked with the surveying firm and corrected accordingly
+
+ds, has(type numeric)  
+foreach v in `r(varlist)' { 
+	replace `v' =max(`v'[399], `v'[400]) if _n == 399 & dups==1  & `v'[400] !=. & (mi("`var'"[399]) | `var'[399]==0)
+} 
+
+
+ds, has(type string)  
+foreach v in `r(varlist)' { 
+	replace `v'=`v'[400] if _n == 399 & dups==1 & `v'[399]=="" & !missing("`v'"[400])
+} 
+
+		drop if _n==400
+
+		
+//-----7th obs dup (school_code 5716 and teacher_id 1)-- issue here is wrong teacher_id-- checked with the surveying firm and corrected accordingly
+
+ds, has(type numeric)  
+foreach v in `r(varlist)' { 
+	replace `v' =max(`v'[655], `v'[656]) if _n == 655 & dups==1  & `v'[656] !=. & (mi("`var'"[655]) | `var'[655]==0)
+} 
+
+
+ds, has(type string)  
+foreach v in `r(varlist)' { 
+	replace `v'=`v'[656] if _n == 655 & dups==1 & `v'[655]=="" & !missing("`v'"[656])
+} 
+
+		drop if _n==656
+
+
+//-----13th obs dup (school_code 11575 and teacher_id 1)-- issue here is wrong teacher_id-- checked with the surveying firm and corrected accordingly
+
+replace teachers_id=6 if (dups==2 & m4saq1=="NIMAT ABAKAR  MAHAMAT")
+
+replace teachers_id=8 if (dups==2 & m4saq1=="MOUBARAK HASSAN  MAHAMAT")
+
 drop dups
-unique school_code teachers_id
+
+duplicates tag school_code teachers_id, gen(dups)
+
+
+
+ds, has(type numeric)  
+foreach v in `r(varlist)' { 
+	replace `v' =max(`v'[1296], `v'[1303]) if _n == 1296 & dups==1  & `v'[1303] !=. & (mi("`var'"[1296]) | `var'[1296]==0)
+} 
+
+
+ds, has(type string)  
+foreach v in `r(varlist)' { 
+	replace `v'=`v'[1303] if _n == 1296 & dups==1 & `v'[1296]=="" & !missing("`v'"[1303])
+} 
+
+		drop if _n==1303
+		
+
+ds, has(type numeric)  
+foreach v in `r(varlist)' { 
+	replace `v' =max(`v'[1297], `v'[1304]) if _n == 1297 & dups==1  & `v'[1304] !=. & (mi("`var'"[1297]) | `var'[1297]==0)
+} 
+
+
+ds, has(type string)  
+foreach v in `r(varlist)' { 
+	replace `v'=`v'[1304] if _n == 1297 & dups==1 & `v'[1297]=="" & !missing("`v'"[1304])
+} 
+
+		drop if _n==1304
+
+
+		
+drop dups
+unique school_code teachers_id //unique 
 
 
 *correcting some ids on teacher assessment IDs
