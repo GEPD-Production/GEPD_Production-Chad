@@ -11,6 +11,9 @@ local preamble_info_school school_code
 local not school_code
 local not1 interview__id
 
+*install package
+ssc install fre
+
 ***************
 ***************
 * School File
@@ -277,12 +280,7 @@ foreach v in `r(varlist)' {
 	replace `v'=`v'[353] if _n == 352 & dups==1 & `v'[352]=="" & !missing("`v'"[353])
 } 
 
-		drop if _n==353
-		
-
-//-----4th obs dup (school_code 3258 and teacher_id 2)-- issue here is wrong teacher_id-- do nothing
-
-* ....
+		drop if _n==353		
 
 
 //-----5th obs dup (school_code 5203 and teacher_id 3)
@@ -316,10 +314,6 @@ foreach v in `r(varlist)' {
 
 		drop if _n==624
 
-		
-//-----7th obs dup (school_code 5716 and teacher_id 1)-- issue here is wrong teacher_id-- do nothing
-
-* ....
 
 
 //-----8th obs dup (school_code 6261 and teacher_id 12)
@@ -396,9 +390,6 @@ foreach v in `r(varlist)' {
 		drop if _n==1151
 	
 		
-//-----13th obs dup (school_code 11575 and teacher_id 1)-- issue here is wrong teacher_id-- do nothing
-
-***
 	
 //-----14th obs dup (school_code 12177 and teacher_id 4)
 ds, has(type numeric)  
@@ -521,8 +512,81 @@ foreach v in `r(varlist)' {
 		drop if _n==1951
 		
 		
+//-----4th obs dup (school_code 3258 and teacher_id 2)-- issue here is wrong teacher_id-- checked with the surveying firm and corrected accordingly
+
+ds, has(type numeric)  
+foreach v in `r(varlist)' { 
+	replace `v' =max(`v'[399], `v'[400]) if _n == 399 & dups==1  & `v'[400] !=. & (mi("`var'"[399]) | `var'[399]==0)
+} 
+
+
+ds, has(type string)  
+foreach v in `r(varlist)' { 
+	replace `v'=`v'[400] if _n == 399 & dups==1 & `v'[399]=="" & !missing("`v'"[400])
+} 
+
+		drop if _n==400
+
+		
+//-----7th obs dup (school_code 5716 and teacher_id 1)-- issue here is wrong teacher_id-- checked with the surveying firm and corrected accordingly
+
+ds, has(type numeric)  
+foreach v in `r(varlist)' { 
+	replace `v' =max(`v'[655], `v'[656]) if _n == 655 & dups==1  & `v'[656] !=. & (mi("`var'"[655]) | `var'[655]==0)
+} 
+
+
+ds, has(type string)  
+foreach v in `r(varlist)' { 
+	replace `v'=`v'[656] if _n == 655 & dups==1 & `v'[655]=="" & !missing("`v'"[656])
+} 
+
+		drop if _n==656
+
+
+//-----13th obs dup (school_code 11575 and teacher_id 1)-- issue here is wrong teacher_id-- checked with the surveying firm and corrected accordingly
+
+replace teachers_id=6 if (dups==2 & m4saq1=="NIMAT ABAKAR  MAHAMAT")
+
+replace teachers_id=8 if (dups==2 & m4saq1=="MOUBARAK HASSAN  MAHAMAT")
+
 drop dups
-unique school_code teachers_id
+
+duplicates tag school_code teachers_id, gen(dups)
+
+
+
+ds, has(type numeric)  
+foreach v in `r(varlist)' { 
+	replace `v' =max(`v'[1296], `v'[1303]) if _n == 1296 & dups==1  & `v'[1303] !=. & (mi("`var'"[1296]) | `var'[1296]==0)
+} 
+
+
+ds, has(type string)  
+foreach v in `r(varlist)' { 
+	replace `v'=`v'[1303] if _n == 1296 & dups==1 & `v'[1296]=="" & !missing("`v'"[1303])
+} 
+
+		drop if _n==1303
+		
+
+ds, has(type numeric)  
+foreach v in `r(varlist)' { 
+	replace `v' =max(`v'[1297], `v'[1304]) if _n == 1297 & dups==1  & `v'[1304] !=. & (mi("`var'"[1297]) | `var'[1297]==0)
+} 
+
+
+ds, has(type string)  
+foreach v in `r(varlist)' { 
+	replace `v'=`v'[1304] if _n == 1297 & dups==1 & `v'[1297]=="" & !missing("`v'"[1304])
+} 
+
+		drop if _n==1304
+
+
+		
+drop dups
+unique school_code teachers_id //unique 
 
 
 *correcting some ids on teacher assessment IDs
@@ -575,12 +639,12 @@ save "${processed_dir}\\School\\Confidential\\Merged\\teachers.dta" , replace
 frame copy teachers teachers_school
 frame change teachers_school
 
-collapse g1_teacher_count g4_teacher_count g2_teacher_count, by(school_code)
+collapse g1_teacher_count g4_teacher_count g2_teacher_count teacher_pedagogy_weight, by(school_code)
 
 frame change school
 frlink m:1 school_code, frame(teachers_school)
 
-frget g1_teacher_count g4_teacher_count g2_teacher_count, from(teachers_school)
+frget g1_teacher_count g4_teacher_count g2_teacher_count teacher_pedagogy_weight, from(teachers_school)
 
 
 
@@ -763,7 +827,91 @@ ds, has(type string)
 local stringvars "`r(varlist)'"
 local stringvars : list stringvars- not
 
+
+* Store variable labels:
+
+ foreach v of var * {
+	local l`v' : variable label `v'
+       if `"`l`v''"' == "" {
+ 	local l`v' "`v'"
+ 	}
+ }
+ 
+ * Store value labels: 
+ 
+label dir 
+return list
+
+
+local list_of_valuelables = r(names)  // specify labels you want to keep
+* local list_of_valuelables =  "m7saq7 m7saq10 teacher_obs_gender"
+
+// save the label values in labels.do file to be executed after the collapse:
+label save using "${clone}/02_programs/School/labels.do", replace
+// note the names of the label values for each variable that has a label value attached to it: need the variable name - value label correspodence
+   local list_of_vars_w_valuelables
+ * foreach var of varlist m7saq10 teacher_obs_gender m7saq7 {
+   
+   foreach var of varlist * {
+   
+   local templocal : value label `var'
+   if ("`templocal'" != "") {
+      local varlabel_`var' : value label `var'
+      di "`var': `varlabel_`var''"
+      local list_of_vars_w_valuelables "`list_of_vars_w_valuelables' `var'"
+   }
+}
+di "`list_of_vars_w_valuelables'"
+
+
+********************************************************************************
+*drop labels and then reattach
+label drop _all
 collapse (mean) `numvars' (firstnm) `stringvars', by(school_code)
+********************************************************************************
+* Comment_AR: After the collpase above the variable type percision changes from byte to double 
+
+
+/*
+fre m1*
+fre m2*
+fre m3*
+fre m4*
+fre m5*
+fre m6*
+fre m7*
+fre m8*
+fre s1*
+fre s2*
+*/
+
+
+
+/*
+// Round variables to convert them from a new variable with byte precision
+
+local lab_issue "s1_c7_2 s1_c9_3 s1_c9_1 s1_c9 s1_c8_3 s1_c8_2 s1_c8_1 s1_c8 s1_c7_3 s1_c7_2 s1_b6_3 s1_b6_2 s1_b6_1 s1_b6 s1_b5_2 s1_b5_1 s1_b4_3 s1_b4_2 s1_b4_1 s1_b4 s1_b3_4 s1_b3_3 s1_b3_1 s1_b3 s1_a2_3 s1_a2_2 s1_a2_1 s1_a2 s1_a1_3 s1_a1_2 s1_a1_1 s1_a1 s1_0_3_2 s1_0_2_2 s1_0_2_1 s1_0_1_2 s1_0_1_1"
+
+foreach var of local lab_issue {	
+replace `var' = round(`var')
+}
+*/
+
+
+* Redefine var labels:  
+  foreach v of var * {
+	label var `v' `"`l`v''"'
+ }
+ 
+// Run labels.do to redefine the label values in collapsed file
+do "${clone}/02_programs/School/labels.do"
+// reattach the label values
+foreach var of local list_of_vars_w_valuelables {
+   cap label values `var' `varlabel_`var''
+}
+
+
+fre s1_c7_2 s1_c9_3 s1_c9_1 s1_c9 s1_c8_3 s1_c8_2 s1_c8_1 s1_c8 s1_c7_3 s1_c7_2 s1_b6_3 s1_b6_2 s1_b6_1 s1_b6 s1_b5_2 s1_b5_1 s1_b4_3 s1_b4_2 s1_b4_1 s1_b4 s1_b3_4 s1_b3_3 s1_b3_1 s1_b3 s1_a2_3 s1_a2_2 s1_a2_1 s1_a2 s1_a1_3 s1_a1_2 s1_a1_1 s1_a1 s1_0_3_2 s1_0_2_2 s1_0_2_1 s1_0_1_2 s1_0_1_1
 
 
 
