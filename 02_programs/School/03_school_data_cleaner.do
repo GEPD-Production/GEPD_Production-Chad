@@ -1513,7 +1513,7 @@ svy: mean principal_evaluation
 *********************************************
 
 *chnage to the frame where teach data exist (school or teachers)
-frame change school
+frame change school  /// frame copy- then add this to teachers data
 
 
 ** grouping teach variables and storing them into globals 
@@ -1724,7 +1724,7 @@ gen instruction_prof=.
 	replace instruction_prof=0	     	  if (instruction <3)
 	replace instruction_prof=0.5*100      if (i_counter==2 | i_counter==3)
 
-*-- Thired component proficiency (socio-emotional)
+*-- Third component proficiency (socio-emotional)
 gen socio_emotional_skills_prof=.
 	replace socio_emotional_skills_prof=1*100  	if (socio_emotional_skills >=3 & socio_emotional_skills<=5)
 	replace socio_emotional_skills_prof=0	   	if (socio_emotional_skills <3)
@@ -1733,7 +1733,7 @@ gen socio_emotional_skills_prof=.
 *--Overall teach proficiency
 gen teacher_pedg_comb_weight = school_weight * teacher_pedagogy_weight
 gen teach_prof = 100*(teach_score>=3)
-	
+
 
 drop s1_a1_pro s1_a2_pro s1_b3_pro s1_b4_pro s1_b5_pro s1_b6_pro ///
 s1_c7_pro s1_c8_pro s1_c9_pro classroom_culture_pro instruction_pro ///
