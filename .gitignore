@@ -79,7 +79,8 @@
 !/**/*_rawdata/*.csv
 !/**/*_rawdata/*/*.csv
 
-
+# csv indicator file in output
+!/**/04_GEPD_Indicators/*.csv
 
 
 # image files in documentation folders
