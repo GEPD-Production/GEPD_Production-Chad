@@ -345,9 +345,6 @@ foreach var of local drop{
 }
 
 
-cap do "${clone}/02_programs/School/Merge_Teacher_Modules/labels.do"
-do "${clone}/02_programs/School/Merge_Teacher_Modules/zz_label_all_variables.do"
-do "${clone}/02_programs/School/Merge_Teacher_Modules/z_value_labels.do"
 
 
 label var district_code "Masked district code"
@@ -636,9 +633,6 @@ foreach var of local drop{
 }
 
 
-cap do "${clone}/02_programs/School/Merge_Teacher_Modules/labels.do"
-do "${clone}/02_programs/School/Merge_Teacher_Modules/zz_label_all_variables.do"
-do "${clone}/02_programs/School/Merge_Teacher_Modules/z_value_labels.do"
 
 
 order district_code school_code_maskd teachers_id
@@ -785,9 +779,6 @@ foreach var of local drop{
 }
 
 
-cap do "${clone}/02_programs/School/Merge_Teacher_Modules/labels.do"
-do "${clone}/02_programs/School/Merge_Teacher_Modules/zz_label_all_variables.do"
-do "${clone}/02_programs/School/Merge_Teacher_Modules/z_value_labels.do"
 
 order district_code school_code_maskd ecd_assessment__id
 
@@ -923,9 +914,6 @@ foreach var of local drop{
       di in r "return code for: `var': " _rc
 }
 
-cap do "${clone}/02_programs/School/Merge_Teacher_Modules/labels.do"
-do "${clone}/02_programs/School/Merge_Teacher_Modules/zz_label_all_variables.do"
-do "${clone}/02_programs/School/Merge_Teacher_Modules/z_value_labels.do"
 
 order district_code school_code_maskd fourth_grade_assessment__id
 
@@ -1064,9 +1052,6 @@ foreach var of local drop{
       di in r "return code for: `var': " _rc
 }
 
-cap do "${clone}/02_programs/School/Merge_Teacher_Modules/labels.do"
-do "${clone}/02_programs/School/Merge_Teacher_Modules/zz_label_all_variables.do"
-do "${clone}/02_programs/School/Merge_Teacher_Modules/z_value_labels.do"
 
 order district_code school_code_maskd ecd_assessment_g2__id
 
