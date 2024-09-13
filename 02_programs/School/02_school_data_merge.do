@@ -189,7 +189,6 @@ drop if missing(teachers_id)
 log off
 
 order school_code
-sort school_code
 
 
 *weights
@@ -622,7 +621,11 @@ replace m3sb_tnumber=teachers_id if school_code==6516 & !missing(m3sb_tnumber)
 br  school_code teachers_id  m4saq1_number if missing(m4saq1_number) & in_pedagogy==1
 
 replace m4saq1_number=teachers_id if missing(m4saq1_number) & in_pedagogy==1
-	unique school_code m4saq1_number if in_pedagogy==1
+	unique school_code_unique m4saq1_number if in_pedagogy==1  
+
+replace m4saq1_number=6 if  m4saq1=="NIMAT ABAKAR  MAHAMAT" & in_pedagogy==1
+replace m4saq1_number=8 if m4saq1=="MOUBARAK HASSAN  MAHAMAT" & in_pedagogy==1
+
 
 log off
 	
