@@ -94,6 +94,7 @@ bin_var_NA0 <- function(var, val) {
   )
 }
 
+
 # create function to extract mean and sd from survey data
 indicator_stats <- function(name, indicator, dataset, tag, unit) {
   name <- str_trim(name)
@@ -121,6 +122,7 @@ indicator_stats <- function(name, indicator, dataset, tag, unit) {
       mutate(
         VALUE = eval(parse(text = indicator))
       ) %>%
+      mutate(strata = factor(strata)) %>%
       filter(!is.na(school_weight)) %>%
       filter(!is.infinite(school_weight)) %>%
       select(VALUE, one_of(strata), school_weight) %>%
@@ -146,10 +148,10 @@ indicator_stats <- function(name, indicator, dataset, tag, unit) {
       stat_df <- teachers_dta
     } else if (unit == "Female") {
       stat_df <- teachers_dta %>%
-        filter(m2saq3 == 1)
+        filter(m2saq3 == 2)
     } else if (unit == "Male") {
       stat_df <- teachers_dta %>%
-        filter(m2saq3 == 0)
+        filter(m2saq3 == 1)
     } else if (unit == "Rural") {
       stat_df <- teachers_dta %>%
         filter(urban_rural == "Rural")
@@ -169,6 +171,7 @@ indicator_stats <- function(name, indicator, dataset, tag, unit) {
       filter(!is.infinite(school_weight)) %>%
       filter(!is.na(teacher_abs_weight)) %>%
       select(VALUE, one_of(strata), school_weight, teacher_abs_weight, school_code, teachers_id) %>%
+      mutate(strata = factor(strata)) %>%
       pivot_longer(
         cols = "VALUE",
         names_to = "indicators",
@@ -192,10 +195,10 @@ indicator_stats <- function(name, indicator, dataset, tag, unit) {
       stat_df <- teachers_dta
     } else if (unit == "Female") {
       stat_df <- teachers_dta %>%
-        filter(m2saq3 == 1)
+        filter(m2saq3 == 2)
     } else if (unit == "Male") {
       stat_df <- teachers_dta %>%
-        filter(m2saq3 == 0)
+        filter(m2saq3 == 1)
     } else if (unit == "Rural") {
       stat_df <- teachers_dta %>%
         filter(urban_rural == "Rural")
@@ -214,6 +217,7 @@ indicator_stats <- function(name, indicator, dataset, tag, unit) {
       filter(!is.na(school_weight)) %>%
       filter(!is.infinite(school_weight)) %>%
       filter(!is.na(teacher_questionnaire_weight)) %>%
+      mutate(strata = factor(strata)) %>%
       select(VALUE, one_of(strata), school_weight, teacher_questionnaire_weight, school_code, teachers_id) %>%
       pivot_longer(
         cols = "VALUE",
@@ -238,10 +242,10 @@ indicator_stats <- function(name, indicator, dataset, tag, unit) {
       stat_df <- teachers_dta
     } else if (unit == "Female") {
       stat_df <- teachers_dta %>%
-        filter(m2saq3 == 1)
+        filter(m2saq3 == 2)
     } else if (unit == "Male") {
       stat_df <- teachers_dta %>%
-        filter(m2saq3 == 0)
+        filter(m2saq3 == 1)
     } else if (unit == "Rural") {
       stat_df <- teachers_dta %>%
         filter(urban_rural == "Rural")
@@ -260,7 +264,8 @@ indicator_stats <- function(name, indicator, dataset, tag, unit) {
       filter(!is.na(school_weight)) %>%
       filter(!is.na(teacher_content_weight)) %>%
       filter(!is.infinite(school_weight)) %>%
-      select(VALUE, one_of(strata), school_weight, teacher_content_weight, school_code, teachers_id) %>%
+      mutate(strata = factor(strata)) %>%
+     select(VALUE, one_of(strata), school_weight, teacher_content_weight, school_code, teachers_id) %>%
       pivot_longer(
         cols = "VALUE",
         names_to = "indicators",
@@ -284,10 +289,10 @@ indicator_stats <- function(name, indicator, dataset, tag, unit) {
       stat_df <- teachers_dta
     } else if (unit == "Female") {
       stat_df <- teachers_dta %>%
-        filter(m2saq3 == 1)
+        filter(m2saq3 == 2)
     } else if (unit == "Male") {
       stat_df <- teachers_dta %>%
-        filter(m2saq3 == 0)
+        filter(m2saq3 == 1)
     } else if (unit == "Rural") {
       stat_df <- teachers_dta %>%
         filter(urban_rural == "Rural")
@@ -299,9 +304,6 @@ indicator_stats <- function(name, indicator, dataset, tag, unit) {
 
 
     stat_df %>%
-      filter(grade == 4) %>% # only grade 4 teachers
-      # drop duplicates of school_code
-      #      distinct(school_code, .keep_all = TRUE) %>%
       # create column named indicator that evaluates expression in indicator argument
       mutate(
         VALUE = eval(parse(text = indicator))
@@ -309,6 +311,7 @@ indicator_stats <- function(name, indicator, dataset, tag, unit) {
       filter(!is.na(school_weight)) %>%
       filter(!is.infinite(school_weight)) %>%
       filter(!is.na(teacher_pedagogy_weight)) %>%
+      mutate(strata = factor(strata)) %>%
       select(VALUE, one_of(strata), school_weight, teacher_pedagogy_weight, school_code, teachers_id) %>%
       pivot_longer(
         cols = "VALUE",
@@ -355,6 +358,7 @@ indicator_stats <- function(name, indicator, dataset, tag, unit) {
       filter(!is.na(school_weight)) %>%
       filter(!is.na(g4_stud_weight)) %>%
       filter(!is.infinite(school_weight)) %>%
+      mutate(strata = factor(strata)) %>%
       select(VALUE, one_of(strata), school_weight, g4_stud_weight, school_code, fourth_grade_assessment__id) %>%
       pivot_longer(
         cols = "VALUE",
@@ -401,6 +405,7 @@ indicator_stats <- function(name, indicator, dataset, tag, unit) {
       filter(!is.na(school_weight)) %>%
       filter(!is.na(g1_stud_weight)) %>%
       filter(!is.infinite(school_weight)) %>%
+      mutate(strata = factor(strata)) %>%
       select(VALUE, one_of(strata), school_weight, g1_stud_weight, school_code, ecd_assessment__id) %>%
       pivot_longer(
         cols = "VALUE",
