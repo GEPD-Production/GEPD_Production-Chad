@@ -852,9 +852,9 @@ frame change pknw_actual_school_inpts
 keep school_code blackboard_functional m4scq5_inpt m4scq4_inpt
 
 frame change school
-frlink 1:1 school_code, frame(pknw_actual_cont)
+frlink m:1 school_code, frame(pknw_actual_cont)
 frget * , from(pknw_actual_cont)
-frlink 1:1 school_code, frame(pknw_actual_exper)
+frlink m:1 school_code, frame(pknw_actual_exper)
 frget * , from(pknw_actual_exper)
 
 replace teacher_count_experience_less3 = 0 if missing(teacher_count_experience_less3)

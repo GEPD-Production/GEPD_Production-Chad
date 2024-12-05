@@ -8,8 +8,8 @@ gl processed_dir ${clone}/03_GEPD_processed_data/
 *save some useful locals
 local preamble_info_individual school_code 
 local preamble_info_school school_code 
-local not school_code
-local not1 interview__id
+local not "school_code_unique"
+local not1 "interview__id"
 
 *install package
 ssc install fre
@@ -90,15 +90,23 @@ replace school_province_preload="" if school_code==223748 & school_address_prelo
 replace school_province_preload="LOGONE OCCIDENTAL" if school_code==223748 & school_address_preload=="2EME ET 3EME ARROND MOUNDOU"
 replace school_province_preload="Information a completer" if school_province_preload=="Information � compl�ter"
 
-
-// adding a unique_school_code varibale becuase the sampling frame had same code for different schools
+// adding a unique_school_code varibale becuase the sampling frame had same code for different schools (seem to only be the case for one school)
 unique school_code    //261 only identified
-unique school_name_preload school_code //266 idenfied
-unique school_name_preload school_code school_address_preload //267 identified 
-unique school_name_preload school_code school_address_preload school_province_preload //267 identified 
+unique school_name_preload school_code //261 idenfied
+unique school_name_preload school_code school_address_preload //262 identified 
+unique school_name_preload school_code school_address_preload school_province_preload //262 identified 
 
 egen school_code_unique = group(school_name_preload school_code school_address_preload )
 unique school_code_unique
+
+
+// on one observation. two enumerators per school entered had 2nd grade classroom observation of the same classroom -- clearning observations on one of them
+ds *_g2, has(type numeric)  
+foreach v in `r(varlist)' { 
+	replace `v'=. if school_code_unique==152 & assignment__id==842
+
+} 
+
 
 *create weight variable that is standardized
 gen school_weight=1/strata_prob // school level weight
@@ -128,7 +136,7 @@ ds, has(type string)
 local stringvars "`r(varlist)'"
 local stringvars : list stringvars- not
 
-collapse (max) `numvars' (firstnm) `stringvars', by(school_code)
+collapse (max) `numvars' (firstnm) `stringvars', by(school_code_unique)
 
 
 ***************
@@ -870,7 +878,7 @@ di "`list_of_vars_w_valuelables'"
 ********************************************************************************
 *drop labels and then reattach
 label drop _all
-collapse (mean) `numvars' (firstnm) `stringvars', by(school_code)
+collapse (mean) `numvars' (firstnm) `stringvars', by(school_code_unique)
 ********************************************************************************
 * Comment_AR: After the collpase above the variable type percision changes from byte to double 
 
