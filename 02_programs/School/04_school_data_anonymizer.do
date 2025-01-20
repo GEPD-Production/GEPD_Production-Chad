@@ -30,9 +30,9 @@ use "${wrk_dir}/school_Stata.dta"
 
 
 *Checking IDs:
-tab school_code, m				//Typically all schools should have an ID
+tab school_code_unique, m				//Typically all schools should have an ID
 
-isid school_code 
+isid school_code_unique 
 								//Typically obs should be identical 
 
 *------------------------------------------------------------------------------*								
@@ -44,11 +44,12 @@ tab school_district_preload, m	//Typically no missings
 egen district_code = group(school_district_preload)
 								//Generates IDs for each district name
 								
-bysort school_district_preload: gen ref_id = 1 if _n == 1
-								//Needed for the following step-- extracting into a seperate file
 
 {								//Run the follwoing as a bloc -- to extract district names and masked codes						
 preserve 
+
+bysort school_district_preload: gen ref_id = 1 if _n == 1
+								//Needed for the following step-- extracting into a seperate file
 
 drop if ref_id==.
 
@@ -81,13 +82,14 @@ tab strata, m	//Typically no missings
 egen strata_code = group(strata)
 								//Generates IDs for each strata name
 
-bysort strata: gen ref_id = 1 if _n == 1
-	tab ref_id
-	br strata strata_code ref_id
 
 
 {								//Run the follwoing as a bloc -- to extract school codes official and masked					
 preserve 
+
+bysort strata: gen ref_id = 1 if _n == 1
+	tab ref_id
+	br strata strata_code ref_id
 
 drop if ref_id==.
 
@@ -112,20 +114,22 @@ foreach var of local drop{
 *Addressing the schools:
 *---------------------------------
 *--- Official school codes and school names
-egen school_code_maskd = group(school_code)
+egen school_code_maskd = group(school_code school_code_unique)
 
 isid school_code_maskd
-bysort school_code: gen ref_id = 1 if _n == 1
-	tab ref_id
-	br school_code school_code_maskd ref_id
 
 
 {								//Run the follwoing as a bloc -- to extract school codes official and masked					
 preserve 
 
+bysort school_code school_code_unique: gen ref_id = 1 if _n == 1
+	tab ref_id
+	br school_code school_code_maskd ref_id
+
+
 drop if ref_id==.
 
-keep school_code school_code_maskd school_name_preload
+keep school_code school_code_unique school_code_maskd school_name_preload
 
 save "${save_dir}\sensetive_masked\school_info.dta", replace
 
@@ -133,7 +137,7 @@ restore
 }								
 
 
-loc drop ref_id school_name_preload school_code school_code_preload hashed_school_code _merge
+loc drop ref_id school_name_preload school_code school_code_unique school_code_preload hashed_school_code _merge 
 foreach var of local drop{
       capture drop `var'
       di in r "return code for: `var': " _rc
@@ -330,14 +334,14 @@ m2saq2__20 m2saq2__21 m2saq2__22 m2saq2__23 m2saq2__24 m2saq2__25 m2saq2__26 m2s
 m2saq2__28 m2saq2__29 m7sb_* m3sb_t* m3sb_etri_roster__0 m5sb_* m9saq1 m10s1q1* m10_teacher_name ///
 m1s0q8 m1s0q9__Timestamp interview__id interview__key district tehsil schoollevel shift Date_time location Date_time_g2 ///
 lga senatorialdistrict classification ///
-modules__2 modules__1 modules__7 modules__3 modules__5 modules__6 modules__4 modules__8 ///
+modules__2 modules__1 modules__7 modules__3 modules__5 modules__6 modules__4 modules__8 modules__9 modules__10 ///
 m2saq1 numEligible i1 i2 i3 i4 i5 available1 available2 available3 available4 available5 ///
 teacher_phone_number1 teacher_phone_number2 teacher_phone_number3 teacher_phone_number4 ///
 teacher_phone_number5 m1s0q6 m1saq2 m1saq2b fillout_teacher_q fillout_teacher_con ///
 fillout_teacher_obs observation_id sssys_irnd has__errors interview__status teacher_etri_list_photo ///
 m5s2q1c_number_new m5s2q1e_number_new m5s1q1f_grammer_new monitoring_inputs_temp monitoring_infrastructure_temp ///
 principal_training_temp school_teacher_ques_INPT ///
-coed_toilet pknw_actual_cont pknw_actual_exper school_goals_relevant_total principal_eval_tot weight
+coed_toilet pknw_actual_cont pknw_actual_exper school_goals_relevant_total principal_eval_tot weight m7covq10_other
 
 foreach var of local drop{
       capture drop `var'
@@ -481,12 +485,12 @@ br strata strata_code
 *--- Official school codes and school names
 br school_code
 
-joinby school_code using "${save_dir}\sensetive_masked\school_info.dta", unmatched(both)
+joinby school_code school_code_unique using "${save_dir}\sensetive_masked\school_info.dta", unmatched(both)
 								//merging school anonymous codes to the school data
 								
 tab _merge
 								//Checking the quality of the merge -- clean and error free merge							
-
+drop if _merge==2
 
  
 local drop school_code school_code_preload hashed_school_code _merge school_name_preload
@@ -625,7 +629,7 @@ teacher_abs_count teacher_quest_count teacher_content_count ///
 emis_code xcoordinate ycoordinate total_enrollment school_headmaster_contact_no ///
 nstudents_district total_district share_district /// 
 sample_size totalstudents strata_count strata_size strata_school_prob strata_prob index tag ///
-flag_unmatched tag_v2 flag_mismatch school_collapse_temp v1_sch_absence_rate v1_absence_rate name_dup pedagogy_matched questionnaire_matched merge1 merge2 assessment_matched nteachers_cont total_cont weight
+flag_unmatched tag_v2 flag_mismatch school_collapse_temp v1_sch_absence_rate v1_absence_rate name_dup pedagogy_matched questionnaire_matched merge1 merge2 assessment_matched nteachers_cont total_cont weight school_code_unique
 
 foreach var of local drop{
       capture drop `var'
@@ -718,13 +722,13 @@ use "${wrk_dir}/first_grade_Stata.dta"
 tab school_code, m						//Typically all schools should have an ID
 tab ecd_assessment__id, m				//Typically all students should have an ID
 
-unique school_code ecd_assessment__id 
+unique school_code school_code_unique ecd_assessment__id 
 								//Typically obs should be identical -- ununique 
 
 *Masking school information:								
 br school_code
 
-joinby school_code using "${save_dir}\sensetive_masked\school_info.dta", unmatched(both)
+joinby school_code school_code_unique using "${save_dir}\sensetive_masked\school_info.dta", unmatched(both)
 								//merging school anonymous codes to the school data
 								
 tab _merge
@@ -771,7 +775,7 @@ foreach var of local drop{
 
 
 *Dropping un necessary varibales 
-loc drop school_code school_name_preload m6s1q1 interview__id interview__key school district tehsil shift schoollevel strata location senatorialdistrict classification ///
+loc drop school_code school_code_unique school_name_preload m6s1q1 interview__id interview__key school district tehsil shift schoollevel strata location senatorialdistrict classification ///
 g1_assess_count g1_student_weight_temp weight
 foreach var of local drop{
       capture drop `var'
@@ -855,13 +859,13 @@ use "${wrk_dir}/fourth_grade_Stata.dta"
 tab school_code, m					//Typically all schools should have an ID
 tab fourth_grade_assessment__id, m	//Typically all students should have an ID
 
-unique school_code fourth_grade_assessment__id 
+unique school_code school_code_unique fourth_grade_assessment__id 
 								//Typically obs should be identical -- ununique 					
 
 *Masking school information:								
 br school_code
 
-joinby school_code using "${save_dir}\sensetive_masked\school_info.dta", unmatched(both)
+joinby school_code school_code_unique using "${save_dir}\sensetive_masked\school_info.dta", unmatched(both)
 								//merging school anonymous codes to the school data
 								
 tab _merge
@@ -907,7 +911,7 @@ foreach var of local drop{
 }
 								
 *Dropping un necessary varibales 
-loc drop school_code school_name_preload _merge m8s1q1 interview__id interview__key school interview__id interview__key school district tehsil shift schoollevel strata location senatorialdistrict classification g4_stud_count g4_assess_count g4_student_weight_temp weight
+loc drop school_code school_name_preload _merge m8s1q1 interview__id interview__key school interview__id interview__key school district tehsil shift schoollevel strata location senatorialdistrict classification g4_stud_count g4_assess_count g4_student_weight_temp weight school_code_unique
 
 foreach var of local drop{
       capture drop `var'
@@ -994,13 +998,13 @@ use "${wrk_dir}/second_grade_Stata.dta"
 tab school_code, m					//Typically all schools should have an ID
 tab ecd_assessment_g2__id, m	//Typically all students should have an ID
 
-unique school_code ecd_assessment_g2__id
+unique school_code school_code_unique ecd_assessment_g2__id
 								//Typically obs should be identical -- ununique 					
 
 *Masking school information:								
 br school_code
 
-joinby school_code using "${save_dir}\sensetive_masked\school_info.dta", unmatched(both)
+joinby school_code school_code_unique using "${save_dir}\sensetive_masked\school_info.dta", unmatched(both)
 								//merging school anonymous codes to the school data
 								
 tab _merge
@@ -1045,7 +1049,7 @@ foreach var of local drop{
 }
 								
 *Dropping un necessary varibales 
-loc drop school_code school_name_preload _merge m8s1q1 interview__id interview__key school interview__id interview__key school district tehsil shift schoollevel strata location senatorialdistrict classification g2_stud_count g2_assess_count g2_student_weight_temp weight m10s1q1
+loc drop school_code school_name_preload _merge m8s1q1 interview__id interview__key school interview__id interview__key school district tehsil shift schoollevel strata location senatorialdistrict classification g2_stud_count g2_assess_count g2_student_weight_temp weight m10s1q1 school_code_unique
 
 foreach var of local drop{
       capture drop `var'
